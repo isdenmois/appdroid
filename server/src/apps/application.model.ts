@@ -12,5 +12,8 @@ export class Application extends Model<Application> {
   version: string;
 
   @Column
+  versionCode: string;
+
+  @Column
   type: string;
 }

@@ -4,6 +4,8 @@ import { exec } from 'child_process';
 import { renameSync } from 'fs';
 import { Application } from './application.model';
 
+type AppInfo = Pick<Application, 'appId' | 'version' | 'versionCode' | 'name'>;
+
 @Injectable()
 export class AppsService {
   constructor(
@@ -12,44 +14,54 @@ export class AppsService {
   ) {}
 
   async addApk(path: string) {
-    const appId = await getAppId(path);
-    const version = await getAppVersion(path);
+    const info = await getInfo(path);
 
-    await this.createOrUpdate(appId, version);
+    await this.createOrUpdate(info);
 
-    renameSync(path, `static/${appId}.apk`);
+    renameSync(path, `static/${info.appId}.apk`);
 
-    return { appId, version, url: `/static/${appId}.apk` };
+    return { ...info, url: `/static/${info.appId}.apk` };
   }
 
   async getList() {
     return this.appModel.findAll();
   }
 
-  private async createOrUpdate(appId: string, version: string) {
+  private async createOrUpdate(info: AppInfo) {
     const model: Application = await this.appModel.findOne({
-      where: { appId },
+      where: { appId: info.appId },
     });
 
     if (model === null) {
-      this.appModel.create({ appId, version, type: 'static' });
+      this.appModel.create({ ...info, type: 'static' });
     } else {
-      model.update({ version });
+      model.update(info);
     }
   }
 }
 
-function getAppId(path: string) {
-  return apkanalyzer(`manifest application-id ${path}`);
+const PACKAGE_REGEXP = /name='([^']+)'[\s]*versionCode='(\d+)'[\s]*versionName='([^']+)/;
+const NAME_REGEXP = /:'(.*)'/;
+
+async function getInfo(path: string): Promise<AppInfo> {
+  const [, appId, versionCode, version] = (await aapt(path, 'package')).match(
+    PACKAGE_REGEXP,
+  );
+  const [, name] = (await aapt(path, 'application-label')).match(NAME_REGEXP);
+
+  return {
+    appId,
+    name,
+    versionCode,
+    version,
+  };
 }
 
-function getAppVersion(path: string) {
-  return apkanalyzer(`manifest version-code ${path}`);
-}
+function aapt(path, grep: string) {
+  const cmd = ['aapt', 'dump', 'badging', path, '|', 'grep', grep].join(' ');
 
-function apkanalyzer(command: string) {
   return new Promise<string>((resolve, reject) =>
-    exec(`apkanalyzer ${command}`, { encoding: 'utf8' }, (error, result) => {
+    exec(cmd, { encoding: 'utf8' }, (error, result) => {
       if (error) return reject(error);
 
       resolve(result.trim());
