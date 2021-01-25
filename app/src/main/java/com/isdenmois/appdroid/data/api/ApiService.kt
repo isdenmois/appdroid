@@ -38,6 +38,10 @@ class ApiService(val context: Context) {
         val url = "$baseUrl/$fileName"
         val file = File(context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS), fileName)
 
+        if (file.exists()) {
+            file.delete()
+        }
+
         val request = DownloadManager.Request(Uri.parse(url))
             .setDestinationUri(Uri.fromFile(file)) // Uri of the destination file
             .setTitle(fileName) // Title of the Download Notification
