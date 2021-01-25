@@ -107,6 +107,7 @@ class MainActivity: AppCompatActivity(), OnAppClickListener {
         mainRepository.getApk(app.appId, object : OnApkDownloadedListener {
             override fun onSuccess(file: File) {
                 ApkInstaller.installApplication(ctx, file);
+                mainViewModel.fetchApps()
             }
         })
     }

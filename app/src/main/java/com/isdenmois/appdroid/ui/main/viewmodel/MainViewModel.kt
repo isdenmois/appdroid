@@ -33,8 +33,8 @@ class MainViewModel(private val mainRepository: MainRepository) : ViewModel() {
                 .map { list -> list.map { app ->
                     val packageInfo = mainRepository.getPackage(app.appId)
                     if (packageInfo != null) {
-                        app.name = packageInfo.packageName
                         app.localVersion = packageInfo.versionCode.toString()
+                        app.localVersionName = packageInfo.versionName
                     }
 
                     app

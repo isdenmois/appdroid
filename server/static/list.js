@@ -10,7 +10,7 @@ export async function refetchList() {
   list.innerHTML = '';
   for (const app of apps) {
     const item = document.createElement('li');
-    item.innerHTML = `<div>${app.appId}</div><div>${app.version}</div>`;
+    item.innerHTML = `<div>${app.appId}</div><div>${app.versionName}</div>`;
 
     list.appendChild(item);
   }

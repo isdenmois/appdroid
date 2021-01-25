@@ -20,7 +20,6 @@ interface OnApkDownloadedListener {
 
 class ApiService(val context: Context) {
     private val baseUrl = "http://192.168.1.60:3000"
-//    private val baseUrl = "http://192.168.1.60:3000"
 
     fun getApps(): Single<List<App>> {
         return Rx2AndroidNetworking.get("$baseUrl/list")

@@ -12,7 +12,7 @@ export class Application extends Model<Application> {
   version: string;
 
   @Column
-  versionCode: string;
+  versionName: string;
 
   @Column
   type: string;

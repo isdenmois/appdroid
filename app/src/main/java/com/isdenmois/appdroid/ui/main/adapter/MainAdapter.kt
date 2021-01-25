@@ -1,5 +1,6 @@
 package com.isdenmois.appdroid.ui.main.adapter
 
+import android.graphics.Color
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -34,9 +35,10 @@ class MainAdapter(val listener: OnAppClickListener): RecyclerView.Adapter<MainAd
             itemView.tv_app_name.text = app.name ?: app.appId
 
             if (app.localVersion != null && app.localVersion != app.version) {
-                itemView.tv_app_version.text = "${app.localVersion} -> ${app.version}"
+                itemView.tv_app_version.text = "${app.localVersionName} (${app.localVersion}) -> ${app.versionName} (${app.version})"
+                itemView.tv_app_version.setTextColor(Color.RED);
             } else {
-                itemView.tv_app_version.text = app.version
+                itemView.tv_app_version.text = app.versionName
             }
 
             itemView.setOnClickListener {

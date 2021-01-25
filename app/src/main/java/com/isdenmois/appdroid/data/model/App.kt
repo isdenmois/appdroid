@@ -7,6 +7,8 @@ data class App(
     @SerializedName("name") var name: String?,
     @SerializedName("appId") val appId: String,
     @SerializedName("version") val version: String,
+    @SerializedName("versionName") val versionName: String,
     @SerializedName("type") val type: String,
     var localVersion: String?,
+    var localVersionName: String?,
 )
