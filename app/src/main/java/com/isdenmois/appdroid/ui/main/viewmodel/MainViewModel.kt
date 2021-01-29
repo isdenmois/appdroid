@@ -44,6 +44,7 @@ class MainViewModel(private val mainRepository: MainRepository) : ViewModel() {
                 .subscribe({ appList ->
                     apps.postValue(Resource.success(appList.toTypedArray()))
                 }, { throwable ->
+                    throwable.printStackTrace()
                     apps.postValue(Resource.error("Something Went Wrong", null))
                 })
         )
