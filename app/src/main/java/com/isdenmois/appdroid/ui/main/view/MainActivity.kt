@@ -1,7 +1,6 @@
 package com.isdenmois.appdroid.ui.main.view
 
 import android.content.Context
-import android.content.DialogInterface
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
@@ -27,14 +26,15 @@ import java.io.File
 
 
 class MainActivity: AppCompatActivity(), OnAppClickListener {
-    private val mainRepository = MainRepository(ApiService(this))
-    private val mainViewModel = MainViewModel(mainRepository)
+    private lateinit var mainRepository: MainRepository
+    private lateinit var mainViewModel: MainViewModel
     private lateinit var adapter: MainAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         setSupportActionBar(toolbar)
+        setupServices()
         setupUI()
         setupObserver()
     }
@@ -53,6 +53,11 @@ class MainActivity: AppCompatActivity(), OnAppClickListener {
 
             else -> super.onOptionsItemSelected(item)
         }
+    }
+
+    private fun setupServices() {
+        mainRepository = MainRepository(ApiService(this))
+        mainViewModel = MainViewModel(mainRepository)
     }
 
     private fun setupUI() {

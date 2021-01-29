@@ -9,6 +9,7 @@ import android.content.pm.PackageInfo
 import android.net.Uri
 import android.os.Environment
 import androidx.appcompat.app.AppCompatActivity
+import com.isdenmois.appdroid.R
 import com.isdenmois.appdroid.data.model.App
 import com.rx2androidnetworking.Rx2AndroidNetworking
 import io.reactivex.Single
@@ -19,7 +20,7 @@ interface OnApkDownloadedListener {
 }
 
 class ApiService(val context: Context) {
-    private val baseUrl = "http://192.168.1.60:3000"
+    private val baseUrl = context.getString(R.string.base_url)
 
     fun getApps(): Single<List<App>> {
         return Rx2AndroidNetworking.get("$baseUrl/list")

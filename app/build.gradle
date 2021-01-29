@@ -4,6 +4,9 @@ plugins {
     id 'kotlin-android-extensions'
 }
 
+def Properties properties = new Properties()
+properties.load(project.rootProject.file("local.properties").newDataInputStream())
+
 android {
     compileSdkVersion 29
     buildToolsVersion "30.0.2"
@@ -16,6 +19,8 @@ android {
         versionName "1.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+
+        resValue "string", "base_url", properties.get("release_url")
     }
 
     buildTypes {
