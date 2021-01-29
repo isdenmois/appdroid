@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="app_bar">#B71C1C</color>
+    <color name="app_bar_text">#000000</color>
+    <color name="background">#121212</color>
+    <color name="primary">#e1e1e1</color>
+
+    <color name="positive_button">#e1e1e1</color>
+    <color name="negative_button">#e1e1e1</color>
+
+    <color name="has_update_text">#D32F2F</color>
+    <color name="primary_text">#e1e1e1</color>
+    <color name="secondary_text">#aaa</color>
+</resources>

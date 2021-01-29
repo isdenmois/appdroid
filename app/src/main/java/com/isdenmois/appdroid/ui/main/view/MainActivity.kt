@@ -63,12 +63,6 @@ class MainActivity: AppCompatActivity(), OnAppClickListener {
     private fun setupUI() {
         rv_list.layoutManager = LinearLayoutManager(this)
         adapter = MainAdapter(this)
-        rv_list.addItemDecoration(
-            DividerItemDecoration(
-                rv_list.context,
-                (rv_list.layoutManager as LinearLayoutManager).orientation
-            )
-        )
         rv_list.adapter = adapter
     }
 
