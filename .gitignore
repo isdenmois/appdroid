@@ -16,3 +16,7 @@ local.properties
 app/release
 gradle-wrapper.jar
 .idea
+app/key.jks
+.env
+fastlane/README.md
+fastlane/report.xml

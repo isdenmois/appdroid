@@ -1,0 +1,21 @@
+default_platform(:android)
+
+platform :android do
+  desc 'Upload a new version'
+  lane :upload do
+    upload_to_server(
+      endPoint: ENV['SERVER_URL'],
+      multipartPayload: {
+        :fileFormFieldName => 'file'
+      }
+    )
+  end
+
+  desc 'Deploy a new version'
+  lane :deploy do
+    increment_version_code
+    git_commit(path: './app/build.gradle', message: 'Version Bump')
+    gradle(task: 'clean assembleRelease')
+    upload
+  end
+end
