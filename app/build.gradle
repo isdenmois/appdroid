@@ -16,7 +16,7 @@ android {
         applicationId "com.isdenmois.appdroid"
         minSdk 28
         targetSdk 30
-        versionCode 12
+        versionCode 13
         versionName "2.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
@@ -38,7 +38,7 @@ android {
     }
     buildTypes {
         release {
-            minifyEnabled true
+            minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             signingConfig signingConfigs.release
         }
