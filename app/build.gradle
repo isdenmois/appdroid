@@ -16,7 +16,7 @@ android {
         applicationId "com.isdenmois.appdroid"
         minSdk 28
         targetSdk 30
-        versionCode 10
+        versionCode 11
         versionName "2.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
