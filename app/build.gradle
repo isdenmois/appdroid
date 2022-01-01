@@ -9,14 +9,14 @@ Properties properties = new Properties()
 properties.load(project.rootProject.file("local.properties").newDataInputStream())
 
 android {
-    compileSdk 30
+    compileSdk 31
     buildToolsVersion "30.0.3"
 
     defaultConfig {
         applicationId "com.isdenmois.appdroid"
         minSdk 28
-        targetSdk 30
-        versionCode 13
+        targetSdk 31
+        versionCode 14
         versionName "2.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
@@ -56,7 +56,6 @@ android {
     }
     composeOptions {
         kotlinCompilerExtensionVersion compose_version
-        kotlinCompilerVersion = kotlin_version
     }
     packagingOptions {
         exclude "**/attach_hotspot_windows.dll"
@@ -68,36 +67,41 @@ android {
 
 dependencies {
 
-    implementation 'androidx.core:core-ktx:1.6.0'
-//    implementation 'com.google.android.material:material:1.4.0'
-    implementation "androidx.compose.ui:ui:$compose_version"
-    implementation "androidx.compose.material:material:$compose_version"
-    implementation "androidx.compose.ui:ui-tooling:$compose_version"
-    implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.3.1'
-    implementation 'androidx.activity:activity-compose:1.3.0-rc02'
-    implementation 'androidx.lifecycle:lifecycle-viewmodel-compose:1.0.0-alpha07'
+    implementation AndroidX.core.ktx
+    implementation AndroidX.compose.ui
+    implementation AndroidX.compose.material
+    implementation AndroidX.compose.ui.tooling
+    implementation AndroidX.lifecycle.runtimeKtx
+    implementation AndroidX.activity.compose
+    implementation AndroidX.lifecycle.viewModelCompose
 
     testImplementation 'junit:junit:4.+'
-    androidTestImplementation 'androidx.test.ext:junit:1.1.3'
-    androidTestImplementation 'androidx.test.espresso:espresso-core:3.4.0'
+    androidTestImplementation AndroidX.test.ext.junit
+    androidTestImplementation AndroidX.test.espresso.core
     // Test rules and transitive dependencies:
-    androidTestImplementation "androidx.compose.ui:ui-test-junit4:$compose_version"
+    androidTestImplementation AndroidX.compose.ui.testJunit4
     // Needed for createComposeRule, but not createAndroidComposeRule:
-    debugImplementation "androidx.compose.ui:ui-test-manifest:$compose_version"
+    debugImplementation AndroidX.compose.ui.testManifest
 
     /** Hilt **/
-    implementation "com.google.dagger:hilt-android:$hilt_version"
-    kapt "com.google.dagger:hilt-compiler:$hilt_version"
+    implementation Google.dagger.hilt.android
+    kapt Google.dagger.hilt.compiler
 
     /** Retrofit with Moshi Converter **/
-    implementation "com.squareup.retrofit2:retrofit:$retrofit_version"
-    implementation "com.squareup.retrofit2:converter-moshi:$retrofit_version"
-    implementation "com.squareup.retrofit2:converter-scalars:$retrofit_version"
-    implementation "com.squareup.okhttp3:logging-interceptor:4.9.1"
+    implementation Square.retrofit2
+    implementation Square.retrofit2.converter.moshi
+    implementation Square.retrofit2.converter.scalars
+    implementation Square.okHttp3.loggingInterceptor
 
     /** Moshi **/
-    implementation "com.squareup.moshi:moshi:$moshi_version"
-    implementation "com.squareup.moshi:moshi-kotlin:$moshi_version"
+    implementation Square.moshi
+    implementation Square.moshi.kotlinReflect
 
-    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.5.0'
+    implementation KotlinX.coroutines.android
+}
+
+configurations {
+    implementation {
+        exclude group: 'org.jetbrains.kotlin', module: 'kotlin-reflect'
+    }
 }
