@@ -64,8 +64,12 @@ dependencies {
     implementation AndroidX.lifecycle.viewModelCompose
 
     testImplementation 'junit:junit:4.+'
+    testImplementation(Testing.mockK)
+    testImplementation(Testing.mockK.common)
     testImplementation(Testing.strikt.core)
+    testImplementation(Testing.strikt.mockk)
     testImplementation("io.strikt:strikt-jvm:_")
+    testImplementation KotlinX.coroutines.test
     androidTestImplementation AndroidX.test.ext.junit
     androidTestImplementation AndroidX.test.espresso.core
     androidTestImplementation(Testing.strikt.core)
