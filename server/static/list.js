@@ -10,8 +10,21 @@ export async function refetchList() {
   list.innerHTML = '';
   for (const app of apps) {
     const item = document.createElement('li');
-    item.innerHTML = `<div>${app.appId}</div><div>${app.versionName}</div>`;
+    item.innerHTML = `<a href="/${app.appId}.apk">${app.appId}</a><div>${app.versionName}</div>`;
 
+    item.querySelector('div').onclick = async () => {
+      const toRemove = confirm(`Are you sure you want to remove "${app.name}"`);
+
+      if (toRemove) {
+        const response = await fetch(`/${app.appId}`, { method: 'DELETE' });
+
+        if (response.ok) {
+          refetchList();
+        } else {
+          alert("Can't remove the apk");
+        }
+      }
+    };
     list.appendChild(item);
   }
 

@@ -153,6 +153,7 @@ form.uploading {
 li {
   list-style-type: none;
   color: #43434a;
+  cursor: pointer;
   display: flex;
   padding: 7px 0;
   border-radius: 5px;
@@ -161,8 +162,10 @@ li:hover {
   color: #e93438;
   background-color: #fbf1f4;
 }
-li > div:first-child {
+li > a {
   flex: 1;
+  text-decoration: none;
+  color: unset;
 }
 ul {
   padding: 0;

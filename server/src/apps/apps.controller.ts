@@ -1,6 +1,8 @@
 import {
   Controller,
+  Delete,
   Get,
+  Param,
   Post,
   UploadedFile,
   UseInterceptors,
@@ -34,5 +36,10 @@ export class AppsController {
     } catch (e) {
       unlinkSync(file.path);
     }
+  }
+
+  @Delete("/:appId")
+  async removeFile(@Param("appId") appId: string) {
+    return this.appsService.removeApk(appId)
   }
 }
