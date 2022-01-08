@@ -1,4 +1,3 @@
-import { refetchList } from './list.js';
-import './form.js';
+import { Home } from './home.js';
 
-refetchList();
+Home();

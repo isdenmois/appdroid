@@ -2,21 +2,28 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, minimal-ui"
+    />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
     <title>App droid APK uploader</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css" />
   </head>
 
   <body>
+    <h1>
+      <a href="/com.isdenmois.appdroid.apk">App Droid</a>
+    </h1>
+
     <div class="upload">
-      <h3>Upload</h3>
-
       <form>
-        <input type="file" accept=".apk" >
+        <h3>Upload</h3>
 
-        <div class="info">
-          Drop your apk here or click and browse
-        </div>
+        <input type="file" accept=".apk" />
+
+        <div class="info">Drop your apk here or click and browse</div>
 
         <div class="uploader"></div>
       </form>

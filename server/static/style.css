@@ -27,6 +27,9 @@ body {
   display: flex;
   flex-direction: column;
 }
+h1 {
+  display: none;
+}
 h3 {
   margin: 0;
   color: #3648a5;
@@ -163,12 +166,69 @@ li:hover {
   background-color: #fbf1f4;
 }
 li > a {
+  display: flex;
   flex: 1;
+}
+li .name {
+  flex: 1;
+}
+a {
   text-decoration: none;
   color: unset;
 }
 ul {
   padding: 0;
   overflow-y: auto;
+}
+/* #endregion */
+
+/* #region mobile */
+
+@media (max-width: 960px) {
+  body {
+    padding: 0;
+    margin: 0;
+    background-color: #fff;
+  }
+  h1 {
+    display: block;
+    text-align: center;
+    box-shadow: 0px 0px 5px 1px rgba(0, 0, 0, 0.1);
+    margin: 0;
+    font-size: 24px;
+    padding: 12px;
+  }
+  .upload {
+    position: static;
+    width: 100vw;
+    margin: 0;
+    border-radius: 0;
+    box-shadow: none;
+    background-color: transparent;
+    overflow-x: hidden;
+    padding: 0 16px;
+  }
+  .list-header,
+  form {
+    display: none;
+  }
+  .all-apks {
+    margin-top: 0;
+  }
+
+  li > a {
+    flex-direction: column;
+  }
+  li .name {
+    flex: auto;
+    font-size: 18px;
+  }
+
+  li .version {
+    color: #888;
+    font-size: 14px;
+    margin-top: 4px;
+    pointer-events: none;
+  }
 }
 /* #endregion */
