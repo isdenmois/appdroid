@@ -1,6 +1,6 @@
 package com.isdenmois.appdroid.entities.apppackage.ui
 
-import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
 import com.isdenmois.appdroid.shared.api.AppPackage
@@ -16,7 +16,10 @@ fun AppItem(item: AppPackage, onClick: () -> Unit = {}) {
         error = "${item.localVersionName} (${item.localVersion}) -> ${item.versionName} (${item.version})"
     }
 
-    Item(title = title, subtitle = version, error = error, onClick = onClick)
+    Column {
+        Item(title = title, subtitle = version, error = error, onClick = onClick)
+        AppItemProgress(item)
+    }
 }
 
 @Preview(showBackground = true)

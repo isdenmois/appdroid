@@ -17,10 +17,10 @@ import com.isdenmois.appdroid.ui.theme.AppDroidTheme
 fun Item(title: String, subtitle: String? = null, error: String? = null, onClick: () -> Unit = {}) {
     Row(Modifier.clickable { onClick() }.fillMaxWidth().padding(16.dp, 8.dp)) {
        Column {
-           Text(title, style = MaterialTheme.typography.body1)
+           Text(title, style = MaterialTheme.typography.body1, color = MaterialTheme.colors.onPrimary)
 
            if (subtitle !== null && error === null) {
-               Text(subtitle, style = MaterialTheme.typography.caption, color = MaterialTheme.colors.secondary)
+               Text(subtitle, style = MaterialTheme.typography.caption, color = MaterialTheme.colors.onSecondary)
            }
 
            if (error !== null) {

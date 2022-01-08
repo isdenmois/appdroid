@@ -1,69 +1,33 @@
 package com.isdenmois.appdroid.entities.apk.model
 
-import android.app.DownloadManager
-import android.content.*
+import android.content.ActivityNotFoundException
+import android.content.Context
+import android.content.Intent
 import android.net.Uri
 import android.os.Environment
 import android.util.Log
 import androidx.core.content.FileProvider
 import com.isdenmois.appdroid.BuildConfig
+import com.isdenmois.appdroid.shared.api.ApiService
+import com.isdenmois.appdroid.shared.api.Download
+import com.isdenmois.appdroid.shared.api.downloadToFileWithProgress
 import dagger.hilt.android.qualifiers.ApplicationContext
-import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.flow.Flow
 import java.io.File
 import javax.inject.Inject
-import javax.inject.Named
 
 class ApkInstaller @Inject constructor(
     @ApplicationContext private val context: Context,
-    @Named("BASE_URL") private val baseUrl: String
+    private val apiService: ApiService,
 ) {
-    suspend fun downloadAndInstallApplication(appId: String) {
-        val apk = downloadApk(appId)
-
-        installApplication(apk)
-    }
-
-    private suspend fun downloadApk(appId: String): File {
+    suspend fun downloadApk(appId: String): Flow<Download> {
         val fileName = "$appId.apk"
-        val url = "$baseUrl/$fileName"
-        val file = File(context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS), fileName)
+        val dir = context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS) ?: context.cacheDir
 
-        return suspendCancellableCoroutine { continuation ->
-            if (file.exists()) {
-                file.delete()
-            }
-
-            val request = DownloadManager.Request(Uri.parse(url))
-                .setDestinationUri(Uri.fromFile(file)) // Uri of the destination file
-                .setTitle(fileName) // Title of the Download Notification
-                .setDescription("Downloading") // Description of the Download Notification
-                .setRequiresCharging(false) // Set if charging is required to begin the download
-                .setAllowedOverMetered(true) // Set if download is allowed on Mobile network
-                .setAllowedOverRoaming(true) // Set if download is allowed on roaming network
-
-
-            val downloadManager = context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
-            val downloadID = downloadManager.enqueue(request)
-            val receiver = object : BroadcastReceiver() {
-                override fun onReceive(context: Context, intent: Intent) {
-                    val reference = intent.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1)
-
-                    if (downloadID == reference) {
-                        context.unregisterReceiver(this)
-                        continuation.resume(file) {}
-                    }
-                }
-            }
-
-            continuation.invokeOnCancellation {
-                context.unregisterReceiver(receiver)
-            }
-
-            context.registerReceiver(receiver, IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE))
-        }
+        return apiService.getApk(fileName).downloadToFileWithProgress(dir, "$appId.apk")
     }
 
-    private fun installApplication(file: File) {
+    fun installApplication(file: File) {
         val intent = Intent(Intent.ACTION_VIEW)
 
         intent.setDataAndType(uriFromFile(context, file), "application/vnd.android.package-archive")

@@ -6,17 +6,19 @@ import androidx.lifecycle.viewModelScope
 import com.isdenmois.appdroid.entities.apk.model.ApkInstaller
 import com.isdenmois.appdroid.entities.apppackage.model.AppPackagesRepository
 import com.isdenmois.appdroid.shared.api.AppPackage
+import com.isdenmois.appdroid.shared.api.Download
 import com.isdenmois.appdroid.shared.api.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import java.io.File
 import javax.inject.Inject
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     private val appPackagesRepository: AppPackagesRepository,
     private val apkInstaller: ApkInstaller,
-): ViewModel() {
+) : ViewModel() {
     var appList = mutableStateOf<Resource<List<AppPackage>>>(Resource.loading(null))
 
     init {
@@ -33,7 +35,27 @@ class HomeViewModel @Inject constructor(
 
     fun installApp(app: AppPackage) {
         viewModelScope.launch {
-            apkInstaller.downloadAndInstallApplication(app.appId)
+            val apk = downloadApk(app)
+
+            apk?.let {
+                apkInstaller.installApplication(apk)
+            }
         }
+    }
+
+    private suspend fun downloadApk(app: AppPackage): File? {
+        val result = apkInstaller.downloadApk(app.appId).mapNotNull {
+            when (it) {
+                is Download.Progress -> app.progress.value = it.percent
+                is Download.Finished -> {
+                    app.progress.value = -1
+                    return@mapNotNull it.file
+                }
+            }
+
+            return@mapNotNull null
+        }.lastOrNull()
+
+        return result
     }
 }
