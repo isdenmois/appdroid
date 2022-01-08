@@ -44,7 +44,7 @@ class HomeViewModel @Inject constructor(
     }
 
     private suspend fun downloadApk(app: AppPackage): File? {
-        val result = apkInstaller.downloadApk(app.appId).mapNotNull {
+        val result = appPackagesRepository.downloadApk(app.appId).mapNotNull {
             when (it) {
                 is Download.Progress -> app.progress.value = it.percent
                 is Download.Finished -> {

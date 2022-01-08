@@ -29,13 +29,6 @@ object ApiModule {
     fun provideRetrofitService(@Named("BASE_URL") baseUrl: String): ApiService {
         val builder = OkHttpClient.Builder()
 
-//        if (BuildConfig.DEBUG) {
-//            val loggingInterceptor = HttpLoggingInterceptor()
-//            loggingInterceptor.level = HttpLoggingInterceptor.Level.BODY
-//            builder.addInterceptor(loggingInterceptor)
-//
-//        }
-
         val okHttpClient = builder.build()
         val moshi = Moshi.Builder()
             .add(KotlinJsonAdapterFactory())
