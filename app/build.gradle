@@ -3,10 +3,8 @@ plugins {
     id 'kotlin-android'
     id 'kotlin-kapt'
     id 'dagger.hilt.android.plugin'
+    id 'co.uzzu.dotenv.gradle' version '1.2.0'
 }
-
-Properties properties = new Properties()
-properties.load(project.rootProject.file("local.properties").newDataInputStream())
 
 android {
     compileSdk 31
@@ -24,23 +22,13 @@ android {
             useSupportLibrary true
         }
 
-        resValue "string", "base_url", properties.get("release_url")
+        resValue "string", "base_url", env.SERVER_URL.value
     }
 
-    signingConfigs {
-        release {
-            assert properties['KEY_STORE_FILE'];
-            storeFile file(properties['KEY_STORE_FILE'])
-            storePassword properties['KEY_PASSWORD']
-            keyAlias properties['KEY_ALIAS']
-            keyPassword properties['KEY_PASSWORD']
-        }
-    }
     buildTypes {
         release {
             minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-            signingConfig signingConfigs.release
         }
     }
     compileOptions {

@@ -20,3 +20,4 @@ app/key.jks
 .env
 fastlane/README.md
 fastlane/report.xml
+/Gemfile.lock
