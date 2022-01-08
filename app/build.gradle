@@ -64,8 +64,12 @@ dependencies {
     implementation AndroidX.lifecycle.viewModelCompose
 
     testImplementation 'junit:junit:4.+'
+    testImplementation(Testing.strikt.core)
+    testImplementation("io.strikt:strikt-jvm:_")
     androidTestImplementation AndroidX.test.ext.junit
     androidTestImplementation AndroidX.test.espresso.core
+    androidTestImplementation(Testing.strikt.core)
+    androidTestImplementation("io.strikt:strikt-jvm:_")
     // Test rules and transitive dependencies:
     androidTestImplementation AndroidX.compose.ui.testJunit4
     // Needed for createComposeRule, but not createAndroidComposeRule:

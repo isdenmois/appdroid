@@ -16,9 +16,9 @@
         android:supportsRtl="true"
         android:usesCleartextTraffic="true"
         android:theme="@style/AppDroid"
-        android:name=".app.AppDroidApplication">
+        android:name=".AppDroidApplication">
         <activity
-            android:name=".app.MainActivity"
+            android:name=".presentational.MainActivity"
             android:exported="true"
             android:label="@string/app_name"
             android:theme="@style/AppDroid.NoActionBar">
