@@ -18,7 +18,7 @@ export class AppsService {
 
     await this.createOrUpdate(info);
 
-    renameSync(path, `static/${info.appId}.apk`);
+    renameSync(path, `../static/${info.appId}.apk`);
 
     return { ...info, url: `/static/${info.appId}.apk` };
   }

@@ -19,7 +19,7 @@ const removeApp = async (app, refetchList) => {
   const toRemove = confirm(`Are you sure you want to remove "${app.name}"`);
 
   if (toRemove) {
-    const response = await fetch(`/${app.appId}`, { method: 'DELETE' });
+    const response = await fetch(`/api/${app.appId}`, { method: 'DELETE' });
 
     if (response.ok) {
       refetchList();

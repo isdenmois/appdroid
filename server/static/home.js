@@ -7,7 +7,7 @@ const list = document.querySelector('.apps-list');
 async function refetchList() {
   setLoader(true);
 
-  const apps = await fetch('/list').then((r) => r.json());
+  const apps = await fetch('/api/list').then((r) => r.json());
 
   setApps(sortBy(apps, 'name'));
   setLoader(false);

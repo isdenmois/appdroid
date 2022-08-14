@@ -18,12 +18,12 @@ import { FileUploadDto } from './dto/upload-dto';
 export class AppsController {
   constructor(private appsService: AppsService) {}
 
-  @Get('/list')
+  @Get('/api/list')
   getList() {
     return this.appsService.getList();
   }
 
-  @Post('upload')
+  @Post('/api/upload')
   @UseInterceptors(FileInterceptor('file'))
   @ApiConsumes('multipart/form-data')
   @ApiBody({
@@ -38,8 +38,8 @@ export class AppsController {
     }
   }
 
-  @Delete("/:appId")
-  async removeFile(@Param("appId") appId: string) {
-    return this.appsService.removeApk(appId)
+  @Delete('/api/:appId')
+  async removeFile(@Param('appId') appId: string) {
+    return this.appsService.removeApk(appId);
   }
 }
