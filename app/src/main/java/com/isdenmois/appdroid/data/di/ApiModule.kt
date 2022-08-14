@@ -11,6 +11,7 @@ import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import okhttp3.OkHttpClient
+import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
 import retrofit2.converter.scalars.ScalarsConverterFactory
@@ -27,9 +28,14 @@ object ApiModule {
     @Singleton
     @Provides
     fun provideRetrofitService(@Named("BASE_URL") baseUrl: String): ApiService {
-        val builder = OkHttpClient.Builder()
+        val logging = HttpLoggingInterceptor()
 
-        val okHttpClient = builder.build()
+//        logging.level = HttpLoggingInterceptor.Level.BASIC
+
+        val okHttpClient = OkHttpClient.Builder()
+            .addInterceptor(logging)
+            .build()
+
         val moshi = Moshi.Builder()
             .add(KotlinJsonAdapterFactory())
             .build()

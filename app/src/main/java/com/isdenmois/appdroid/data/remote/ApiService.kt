@@ -7,10 +7,10 @@ import retrofit2.http.Path
 import retrofit2.http.Streaming
 
 interface ApiService {
-    @GET("/list")
+    @GET("list")
     suspend fun getAppList(): List<AppPackage>
 
     @Streaming
-    @GET("/{fileName}")
+    @GET("{fileName}")
     suspend fun getApk(@Path("fileName") fileName: String): ResponseBody
 }
