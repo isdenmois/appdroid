@@ -6,12 +6,10 @@ import com.squareup.moshi.JsonClass
 
 @JsonClass(generateAdapter = true)
 data class AppPackage(
-    val id: String,
-    var name: String? = null,
     val appId: String,
+    var name: String? = null,
     val version: String,
     val versionName: String,
-    val type: String,
     var localVersion: String? = null,
     var localVersionName: String? = null,
 ) {

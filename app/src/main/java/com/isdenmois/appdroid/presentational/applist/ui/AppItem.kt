@@ -26,8 +26,8 @@ fun AppItem(item: AppPackage, onClick: () -> Unit = {}) {
 @Composable
 private fun AppItemPreview() {
     Column {
-        AppItem(item = AppPackage(id = "1", name = "AppDroid", appId = "com.isden.appdroid", version = "1", versionName = "1.0", "hz"))
-        AppItem(item = AppPackage(id = "2", name = "Bookly", appId = "com.isden.bookly", version = "5", versionName = "1.2.30", "hz", localVersion = "4", localVersionName = "1.2.0"))
-        AppItem(item = AppPackage(id = "3", name = null, appId = "com.y.z", version = "10", versionName = "3.5.0", "hz"))
+        AppItem(item = AppPackage(appId = "com.isden.appdroid", name = "AppDroid", version = "1", versionName = "1.0", "hz"))
+        AppItem(item = AppPackage(appId = "com.isden.bookly", name = "Bookly", version = "5", versionName = "1.2.30", localVersion = "4", localVersionName = "1.2.0"))
+        AppItem(item = AppPackage(appId = "com.y.z", name = null, version = "10", versionName = "3.5.0", "hz"))
     }
 }

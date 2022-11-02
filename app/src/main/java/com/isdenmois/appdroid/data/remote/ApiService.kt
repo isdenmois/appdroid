@@ -11,6 +11,6 @@ interface ApiService {
     suspend fun getAppList(): List<AppPackage>
 
     @Streaming
-    @GET("/{fileName}")
+    @GET("/apk/{fileName}")
     suspend fun getApk(@Path("fileName") fileName: String): ResponseBody
 }
