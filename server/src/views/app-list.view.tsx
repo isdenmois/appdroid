@@ -43,5 +43,5 @@ const createLink = (baseUrl: string, app: App) => {
     additionalSettings,
   });
 
-  return `obtainium://app/${params}`;
+  return encodeURI(`obtainium://app/${params}`);
 };
