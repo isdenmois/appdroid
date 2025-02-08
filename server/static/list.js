@@ -4,7 +4,7 @@ export function AppList({ apps, onRemove }) {
 
 function AppPackage({ app, onRemove }) {
   const item = document.createElement('li');
-  item.innerHTML = `<a href="/${app.appId}.apk"><div class="name">${app.name}</div><div class="version">${app.versionName}</div></a>`;
+  item.innerHTML = `<a href="/file/${app.appId}"><div class="name">${app.name}</div><div class="version">${app.versionName}</div></a>`;
 
   item.querySelector('.version').onclick = (e) => {
     e.preventDefault();
