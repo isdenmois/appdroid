@@ -1,19 +1,19 @@
 # Install node_modules
-FROM oven/bun:latest AS modules
+FROM oven/bun:slim AS modules
 WORKDIR /app
 COPY server/package.json .
-COPY server/bun.lockb .
+COPY server/bun.lock .
 RUN bun install
 
 # Build the files
-FROM oven/bun:latest AS builder
+FROM oven/bun:slim AS builder
 WORKDIR /app
 COPY --from=modules /app/node_modules ./node_modules/
 COPY server .
 RUN bun run build
 
 # Run the app
-FROM oven/bun:latest
+FROM oven/bun:slim
 WORKDIR /app
 ARG PORT=3000
 ENV PORT=$PORT

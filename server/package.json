@@ -8,16 +8,16 @@
     "schema": "drizzle-kit generate --dialect sqlite --schema ./src/db/schema.ts"
   },
   "dependencies": {
-    "@elysiajs/html": "1.2.0",
-    "@elysiajs/static": "1.2.0",
+    "@elysiajs/html": "1.3.1",
+    "@elysiajs/static": "1.3.0",
     "aaptjs": "1.3.2",
-    "drizzle-orm": "0.39.2",
-    "elysia": "1.2.12"
+    "drizzle-orm": "0.44.5",
+    "elysia": "1.3.21"
   },
   "devDependencies": {
     "bun-types": "latest",
     "drizzle-kit": "0.30.4",
-    "prettier": "^3.4.2"
+    "prettier": "3.4.2"
   },
   "module": "src/index.js"
 }
