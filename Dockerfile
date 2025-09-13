@@ -21,11 +21,9 @@ ENV NODE_ENV=production
 EXPOSE $PORT
 
 # Copy only what's needed for running the application
-COPY server/package.json .
-COPY server/tsconfig.json .
 COPY --from=builder /app/node_modules/aaptjs/bin/linux ./node_modules/aaptjs/bin/linux
 COPY --from=builder /app/dist dist
 COPY --from=builder /app/static static
 COPY --from=builder /app/drizzle drizzle
 
-CMD ["bun", "start"]
+CMD ["bun", "dist/index.js"]
