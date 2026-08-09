@@ -1,0 +1,40 @@
+# Appdroid server — Go workflow
+# https://just.systems/man/en/
+
+set shell := ["bash", "-euo", "pipefail", "-c"]
+
+# Build the server binary into ./bin/appdroid
+build:
+    go build -ldflags="-s -w" -o bin/appdroid ./cmd/server
+
+# Run the full test suite (cached)
+test:
+    go test ./...
+
+# Run the full test suite with the Go race detector
+test-race:
+    go test -race ./...
+
+# Run gofmt and go vet and fail if either reports a problem
+check:
+    gofmt -l .
+    go vet ./...
+
+# Fix formatting of all Go files
+fmt:
+    gofmt -w .
+
+# Tidy go.mod and go.sum
+tidy:
+    go mod tidy
+
+# Run the server locally (env overrides apply: PORT, DATA_DIR)
+run:
+    go run ./cmd/server
+
+# Build a static binary (no CGO) into ./bin/appdroid-static
+build-static:
+    CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o bin/appdroid-static ./cmd/server
+
+# Default: check + test + build
+default: check test build

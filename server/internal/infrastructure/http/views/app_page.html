@@ -1,0 +1,9 @@
+{{define "content"}}
+      <ul>
+        {{range .Apps}}
+        <li>
+          <a href="/apk/{{.Apk}}/{{.ID}}-{{.VersionName}}.apk">{{.ID}}-{{.VersionName}}.apk</a>
+        </li>
+        {{end}}
+      </ul>
+{{end}}

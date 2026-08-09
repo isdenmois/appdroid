@@ -1,0 +1,20 @@
+{{define "content"}}
+      <h1>App Droid</h1>
+
+      <div class="upload">
+        <div class="all-apks">
+          <div class="list-header">All APKs</div>
+
+          <ul class="apps-list">
+            {{range .Apps}}
+            <li>
+              <a href="{{.ObtainiumLink}}">
+                <div class="name">{{.Name}}</div>
+                <div class="version">{{.VersionName}}</div>
+              </a>
+            </li>
+            {{end}}
+          </ul>
+        </div>
+      </div>
+{{end}}

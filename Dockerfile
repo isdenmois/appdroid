@@ -1,29 +1,29 @@
-# Install node_modules
-FROM oven/bun:slim AS modules
-WORKDIR /app
-COPY server/package.json .
-COPY server/bun.lock .
-RUN bun install
+# syntax=docker/dockerfile:1
 
-# Build the files
-FROM oven/bun:slim AS builder
-WORKDIR /app
-COPY --from=modules /app/node_modules ./node_modules/
-COPY server .
-RUN bun run build
+# Build the Go binary
+FROM golang:1.26-alpine AS build
+WORKDIR /src
+
+# Cache module downloads across builds
+COPY server/go.mod server/go.sum ./
+RUN --mount=type=cache,target=/go/pkg/mod \
+    go mod download
+
+# Build (with go build cache persisted via BuildKit)
+COPY server/ .
+RUN --mount=type=cache,target=/go/pkg/mod \
+    --mount=type=cache,target=/root/.cache/go-build \
+    CGO_ENABLED=0 GOOS=linux go build -trimpath -ldflags="-s -w" -o /out/appdroid ./cmd/server
 
 # Run the app
-FROM oven/bun:slim
+FROM scratch
 WORKDIR /app
 ARG PORT=3000
 ENV PORT=$PORT
-ENV NODE_ENV=production
+# Release mode enables static asset caching (dev/debug mode disables it).
+ENV GIN_MODE=release
 EXPOSE $PORT
 
-# Copy only what's needed for running the application
-COPY --from=builder /app/node_modules/aaptjs/bin/linux ./node_modules/aaptjs/bin/linux
-COPY --from=builder /app/dist dist
-COPY --from=builder /app/static static
-COPY --from=builder /app/drizzle drizzle
+COPY --from=build /out/appdroid /app/appdroid
 
-CMD ["bun", "dist/index.js"]
+CMD ["/app/appdroid"]
