@@ -1,6 +1,7 @@
 package views
 
 import (
+	"encoding/json"
 	"net/url"
 	"strings"
 	"testing"
@@ -81,18 +82,45 @@ func TestObtainiumLink(t *testing.T) {
 	if err != nil {
 		t.Fatalf("unescape payload: %v", err)
 	}
-	for _, want := range []string{
-		`"id":"a1b2"`,
-		`"url":"http://192.168.1.5:3999/app/a1b2"`,
-		`"author":"Appdroid"`,
-		`"name":"Example App"`,
-		`"versionExtractionRegEx":"-(.*)\\.apk$"`,
-		`"matchGroupToUse":"1"`,
-		`"versionDetection":true`,
-	} {
-		if !strings.Contains(dec, want) {
-			t.Errorf("payload missing %s, got %q", want, dec)
-		}
+
+	var got struct {
+		ID                 string `json:"id"`
+		URL                string `json:"url"`
+		Author             string `json:"author"`
+		Name               string `json:"name"`
+		AdditionalSettings string `json:"additionalSettings"`
+	}
+	if err := json.Unmarshal([]byte(dec), &got); err != nil {
+		t.Fatalf("decode payload: %v", err)
+	}
+
+	if got.ID != "a1b2" {
+		t.Errorf("id = %q, want %q", got.ID, "a1b2")
+	}
+	if got.URL != "http://192.168.1.5:3999/app/a1b2" {
+		t.Errorf("url = %q, want %q", got.URL, "http://192.168.1.5:3999/app/a1b2")
+	}
+	if got.Author != "Appdroid" {
+		t.Errorf("author = %q, want %q", got.Author, "Appdroid")
+	}
+	if got.Name != "Example App" {
+		t.Errorf("name = %q, want %q", got.Name, "Example App")
+	}
+
+	// AdditionalSettings is marshalled as a JSON string, so decode it again to
+	// verify the inner values.
+	var settings additionalSettings
+	if err := json.Unmarshal([]byte(got.AdditionalSettings), &settings); err != nil {
+		t.Fatalf("decode additionalSettings: %v", err)
+	}
+	if settings.VersionExtractionRegEx != `-(.*)\.apk$` {
+		t.Errorf("versionExtractionRegEx = %q, want %q", settings.VersionExtractionRegEx, `-(.*)\.apk$`)
+	}
+	if settings.MatchGroupToUse != "1" {
+		t.Errorf("matchGroupToUse = %q, want %q", settings.MatchGroupToUse, "1")
+	}
+	if !settings.VersionDetection {
+		t.Errorf("versionDetection = %v, want true", settings.VersionDetection)
 	}
 }
 

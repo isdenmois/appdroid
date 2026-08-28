@@ -80,7 +80,8 @@ func render(tmpl *template.Template, d Data) ([]byte, error) {
 }
 
 // additionalSettings mirrors the JSON the previous implementation embedded in
-// every obtainium link.
+// every obtainium link. It is serialised to a JSON string and embedded as the
+// additionalSettings field value.
 type additionalSettings struct {
 	VersionExtractionRegEx string `json:"versionExtractionRegEx"`
 	MatchGroupToUse        string `json:"matchGroupToUse"`
@@ -88,28 +89,35 @@ type additionalSettings struct {
 }
 
 // obtainiumParams mirrors the params JSON payload of an obtainium link.
+// AdditionalSettings is marshalled as a JSON string (not an object) to match
+// the previous implementation's embedding.
 type obtainiumParams struct {
-	ID                 string             `json:"id"`
-	URL                string             `json:"url"`
-	Author             string             `json:"author"`
-	Name               string             `json:"name"`
-	AdditionalSettings additionalSettings `json:"additionalSettings"`
+	ID                 string `json:"id"`
+	URL                string `json:"url"`
+	Author             string `json:"author"`
+	Name               string `json:"name"`
+	AdditionalSettings string `json:"additionalSettings"`
 }
 
 // obtainiumLink builds an obtainium:// app link for the given app. The link is
 // the JSON params payload percent-encoded the same way the previous
 // implementation did it with encodeURI().
 func obtainiumLink(baseURL string, app domainapp.App) string {
+	additional, err := json.Marshal(additionalSettings{
+		VersionExtractionRegEx: `-(.*)\.apk$`,
+		MatchGroupToUse:        "1",
+		VersionDetection:       true,
+	})
+	if err != nil {
+		return ""
+	}
+
 	params, err := json.Marshal(obtainiumParams{
 		ID:     app.ID,
 		URL:    baseURL + "/app/" + app.ID,
 		Author: "Appdroid",
 		Name:   app.Name,
-		AdditionalSettings: additionalSettings{
-			VersionExtractionRegEx: `-(.*)\.apk$`,
-			MatchGroupToUse:        "1",
-			VersionDetection:       true,
-		},
+		AdditionalSettings: string(additional),
 	})
 	if err != nil {
 		return ""
