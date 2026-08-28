@@ -1,20 +1,6 @@
 # VCS
 .git
 
-# Android / Gradle / Fastlane — not part of the server image
-app
-gradle
-fastlane
-build.gradle
-settings.gradle
-gradle.properties
-gradlew
-gradlew.bat
-versions.properties
-Gemfile
-Gemfile.lock
-local.properties
-
 # Server build artifacts and runtime data (server/bin, server/data)
 server/bin
 server/dist
