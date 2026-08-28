@@ -6,9 +6,9 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
-	appsvc "github.com/isdenmois/appdroid/server/internal/application/app"
-	domainapp "github.com/isdenmois/appdroid/server/internal/domain/app"
-	"github.com/isdenmois/appdroid/server/internal/infrastructure/http/views"
+	appsvc "github.com/isdenmois/appdroid/internal/application/app"
+	domainapp "github.com/isdenmois/appdroid/internal/domain/app"
+	"github.com/isdenmois/appdroid/internal/infrastructure/http/views"
 )
 
 // PagesHandler renders the server-side HTML pages.

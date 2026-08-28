@@ -10,13 +10,13 @@ import (
 
 	"github.com/sarulabs/di/v2"
 
-	appsvc "github.com/isdenmois/appdroid/server/internal/application/app"
-	"github.com/isdenmois/appdroid/server/internal/config"
-	"github.com/isdenmois/appdroid/server/internal/infrastructure/apkparser"
-	"github.com/isdenmois/appdroid/server/internal/infrastructure/apkstorage"
-	infrahttp "github.com/isdenmois/appdroid/server/internal/infrastructure/http"
-	"github.com/isdenmois/appdroid/server/internal/infrastructure/http/views"
-	"github.com/isdenmois/appdroid/server/internal/infrastructure/repository"
+	appsvc "github.com/isdenmois/appdroid/internal/application/app"
+	"github.com/isdenmois/appdroid/internal/config"
+	"github.com/isdenmois/appdroid/internal/infrastructure/apkparser"
+	"github.com/isdenmois/appdroid/internal/infrastructure/apkstorage"
+	infrahttp "github.com/isdenmois/appdroid/internal/infrastructure/http"
+	"github.com/isdenmois/appdroid/internal/infrastructure/http/views"
+	"github.com/isdenmois/appdroid/internal/infrastructure/repository"
 )
 
 const (

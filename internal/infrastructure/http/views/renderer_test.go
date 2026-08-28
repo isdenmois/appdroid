@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	domainapp "github.com/isdenmois/appdroid/server/internal/domain/app"
+	domainapp "github.com/isdenmois/appdroid/internal/domain/app"
 )
 
 func TestEncodeURI(t *testing.T) {

@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	domainapp "github.com/isdenmois/appdroid/server/internal/domain/app"
+	domainapp "github.com/isdenmois/appdroid/internal/domain/app"
 )
 
 // fakeRepo is an in-memory AppRepository for tests.

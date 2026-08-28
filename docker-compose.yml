@@ -4,5 +4,5 @@ services:
     ports:
       - "3000:3000"
     volumes:
-      - ./server/data:/app/data
+      - ./data:/app/data
     restart: unless-stopped

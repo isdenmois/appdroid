@@ -1,4 +1,4 @@
-module github.com/isdenmois/appdroid/server
+module github.com/isdenmois/appdroid
 
 go 1.26.5
 

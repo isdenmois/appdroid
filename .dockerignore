@@ -1,12 +1,12 @@
 # VCS
 .git
 
-# Server build artifacts and runtime data (server/bin, server/data)
-server/bin
-server/dist
-server/node_modules
-server/data
-server/.zcode
+# Build artifacts and runtime data
+bin
+data
+
+# Secrets and tool metadata
+.env
 
 # Misc
 *.log

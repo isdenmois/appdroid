@@ -6,7 +6,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
-	appsvc "github.com/isdenmois/appdroid/server/internal/application/app"
+	appsvc "github.com/isdenmois/appdroid/internal/application/app"
 )
 
 // FilesHandler serves the stored APK files.

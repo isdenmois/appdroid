@@ -8,7 +8,7 @@ import (
 	"html/template"
 	"strings"
 
-	domainapp "github.com/isdenmois/appdroid/server/internal/domain/app"
+	domainapp "github.com/isdenmois/appdroid/internal/domain/app"
 )
 
 //go:embed layout.html app_list.html app_page.html

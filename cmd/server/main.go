@@ -13,8 +13,8 @@ import (
 
 	"github.com/joho/godotenv"
 
-	"github.com/isdenmois/appdroid/server/internal/config"
-	"github.com/isdenmois/appdroid/server/internal/container"
+	"github.com/isdenmois/appdroid/internal/config"
+	"github.com/isdenmois/appdroid/internal/container"
 )
 
 func main() {
@@ -52,7 +52,7 @@ func main() {
 	}
 }
 
-// loadDevEnv loads ./server/.env to seed environment variables. It only runs
+// loadDevEnv loads ./.env from the working directory to seed environment variables. It only runs
 // in dev mode (SERVER_MODE != "release") so production images never read a
 // .env file. godotenv never overrides variables already present in the
 // environment, so a real env var always wins. A missing file is expected on

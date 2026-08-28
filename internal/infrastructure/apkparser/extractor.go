@@ -13,7 +13,7 @@ import (
 
 	"github.com/avast/apkparser"
 
-	domainapp "github.com/isdenmois/appdroid/server/internal/domain/app"
+	domainapp "github.com/isdenmois/appdroid/internal/domain/app"
 )
 
 // Parser implements application.ApkParser.

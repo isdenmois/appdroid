@@ -14,11 +14,11 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
-	appsvc "github.com/isdenmois/appdroid/server/internal/application/app"
-	"github.com/isdenmois/appdroid/server/internal/infrastructure/apkparser"
-	"github.com/isdenmois/appdroid/server/internal/infrastructure/apkstorage"
-	"github.com/isdenmois/appdroid/server/internal/infrastructure/http/views"
-	"github.com/isdenmois/appdroid/server/internal/infrastructure/repository"
+	appsvc "github.com/isdenmois/appdroid/internal/application/app"
+	"github.com/isdenmois/appdroid/internal/infrastructure/apkparser"
+	"github.com/isdenmois/appdroid/internal/infrastructure/apkstorage"
+	"github.com/isdenmois/appdroid/internal/infrastructure/http/views"
+	"github.com/isdenmois/appdroid/internal/infrastructure/repository"
 )
 
 // testApp returns the (handler bundle, data dir) used by the tests. It uses a

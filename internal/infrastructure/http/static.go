@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/isdenmois/appdroid/server/internal/config"
+	"github.com/isdenmois/appdroid/internal/config"
 )
 
 //go:embed static

@@ -9,7 +9,7 @@ import (
 	"fmt"
 	"io"
 
-	domainapp "github.com/isdenmois/appdroid/server/internal/domain/app"
+	domainapp "github.com/isdenmois/appdroid/internal/domain/app"
 )
 
 // ErrAppNotFound is returned when the requested app does not exist.

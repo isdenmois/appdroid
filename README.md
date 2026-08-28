@@ -52,10 +52,10 @@ just build-static # static binary without CGO
 | `API_KEY`   | `""`     | Shared secret for `X-API-Key` header. When empty the server fails closed and rejects every mutating request (POST/PATCH/DELETE) |
 
 > **Auth in dev.** When `SERVER_MODE` is not `release` (e.g. local `just run`), the
-> server also loads `./server/.env` to seed environment variables. Real env
+> server also loads `./.env` to seed environment variables. Real env
 > variables always win over values in the `.env` file, so `API_KEY` set via
 > `docker run -e` or compose `env_file` is never overridden. Add `API_KEY` to
-> `server/.env.example` (copy to `server/.env`) for local development.
+> `.env.example` (copy to `.env`) for local development.
 
 ## Caching
 

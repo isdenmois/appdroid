@@ -5,8 +5,8 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
-	appsvc "github.com/isdenmois/appdroid/server/internal/application/app"
-	domainapp "github.com/isdenmois/appdroid/server/internal/domain/app"
+	appsvc "github.com/isdenmois/appdroid/internal/application/app"
+	domainapp "github.com/isdenmois/appdroid/internal/domain/app"
 )
 
 // appDTO is the JSON representation of an app exposed by the API. The field
