@@ -6,11 +6,11 @@ API behavior.
 
 ## Stack
 
-- [Gin](https://github.com/gin-gonic/gin) — HTTP framework
+- [chi](https://github.com/go-chi/chi) — HTTP router
 - [sarulabs/di](https://github.com/sarulabs/di) — dependency injection
 - [avast/apkparser](https://github.com/avast/apkparser) — pure-Go APK parsing
   (no `aapt` binary required)
-- [modernc.org/sqlite](https://gitlab.com/cznic/sqlite) — pure-Go SQLite driver
+- [go.etcd.io/bbolt](https://github.com/etcd-io/bbolt) — embedded key/value store
   (no CGO, `CGO_ENABLED=0` compatible)
 - [html/template](https://pkg.go.dev/html/template) — server-rendered pages
 
@@ -25,10 +25,10 @@ internal/application/app/   use cases (UploadApk, List, Get, Delete, Serve)
 internal/infrastructure/
   apkparser/                APK metadata extraction adapter
   apkstorage/               temp + persistent file storage
-  repository/               SQLite adapter for AppRepository
-  http/                     Gin handlers, routes, SSR page templates
+  repository/               bbolt adapter for AppRepository
+  http/                     chi handlers, routes, SSR page templates
   http/static/              admin frontend (vanilla JS, embedded into the binary)
-data/                       runtime data: sqlite.db + uploaded APKs
+data/                       runtime data: appdroid.db + uploaded APKs
 ```
 
 ## Development
@@ -48,16 +48,24 @@ just build-static # static binary without CGO
 | Env var     | Default  | Description                             |
 |-------------|----------|-----------------------------------------|
 | `PORT`      | `3000`   | HTTP listen port                        |
-| `DATA_DIR`  | `./data` | Directory for SQLite db and APK files   |
+| `DATA_DIR`  | `./data` | Directory for bbolt db and APK files   |
+| `API_KEY`   | `""`     | Shared secret for `X-API-Key` header. When empty the server fails closed and rejects every mutating request (POST/PATCH/DELETE) |
+
+> **Auth in dev.** When `SERVER_MODE` is not `release` (e.g. local `just run`), the
+> server also loads `./server/.env` to seed environment variables. Real env
+> variables always win over values in the `.env` file, so `API_KEY` set via
+> `docker run -e` or compose `env_file` is never overridden. Add `API_KEY` to
+> `server/.env.example` (copy to `server/.env`) for local development.
 
 ## Caching
 
 - HTML entry documents (`/`, SSR pages) always send `Cache-Control: no-cache`
   and are revalidated on every request.
 - JS/CSS static assets send `Cache-Control: public, max-age=86400` in release
-  mode (`GIN_MODE=release`, the Docker image default) and are cached for a day.
-- In dev mode (`GIN_MODE=debug`, e.g. local `just run`) all static assets send
-  `no-cache`, so a local rebuild is picked up immediately.
+  mode (`SERVER_MODE=release`, the Docker image default) and are cached for a
+  day.
+- In dev mode (`SERVER_MODE` unset, e.g. local `just run`) all static assets
+  send `no-cache`, so a local rebuild is picked up immediately.
 
 ## API
 
@@ -66,18 +74,22 @@ just build-static # static binary without CGO
 | `GET /`                     | static admin frontend                      |
 | `GET /api/ping`             | `pong` (health check)                      |
 | `GET /api/list`             | JSON list of apps                          |
-| `POST /api/upload`          | multipart `file` (cap 256 MiB)             |
-| `DELETE /api/:id`           | delete app + stored APK                    |
+| `POST /api/upload`          | multipart `file` (cap 256 MiB), needs `X-API-Key` |
+| `DELETE /api/:id`           | delete app + stored APK, needs `X-API-Key` |
 | `GET /file/:file`           | serve stored APK                           |
 | `GET /apk/:file/:hash`      | serve stored APK                           |
 | `GET /apps`                 | SSR page with Obtainium deep links         |
 | `GET /app/:id`              | SSR app page with download link            |
 
+Mutating routes (`POST /api/upload`, `DELETE /api/:id`) require a valid
+`X-API-Key` header matching `API_KEY`. Without it the server fails closed and
+returns `401`. All `GET` routes (downloads, public pages) stay public.
+
 ## Docker
 
 Multi-stage build (`golang:1.26-alpine` → `scratch`) produces a single static
 binary with the admin frontend embedded. `data/` is a runtime volume — mount it
-to keep the SQLite database and APKs across redeploys.
+to keep the bbolt db and APKs across redeploys.
 
 ```bash
 docker build -t appdroid .

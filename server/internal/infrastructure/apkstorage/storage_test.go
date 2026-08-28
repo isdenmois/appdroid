@@ -1,6 +1,7 @@
 package apkstorage
 
 import (
+	"errors"
 	"io"
 	"os"
 	"path/filepath"
@@ -142,5 +143,30 @@ func TestRemoveMissingFileIsNoop(t *testing.T) {
 	// assert
 	if err != nil {
 		t.Fatalf("remove: %v", err)
+	}
+}
+
+// TestOpenRejectsPathTraversal ensures the file-serving entry point cannot be
+// used to read files outside the data directory via the :file URL param.
+func TestOpenRejectsPathTraversal(t *testing.T) {
+	// arrange
+	dataDir := t.TempDir()
+	outside := filepath.Join(dataDir, "..", "secret.txt")
+	if err := os.WriteFile(outside, []byte("sensitive"), 0o644); err != nil {
+		t.Fatalf("write outside file: %v", err)
+	}
+	s := NewStorage(dataDir)
+
+	// act + assert: every traversal form must be rejected with errTraversal
+	for _, name := range []string{"..", "../secret.txt", ".." + string(os.PathSeparator) + "secret.txt"} {
+		f, err := s.Open(name)
+		if err == nil {
+			f.Close()
+			t.Errorf("expected traversal %q to be rejected, but Open succeeded", name)
+			continue
+		}
+		if !errors.Is(err, errTraversal) {
+			t.Errorf("expected errTraversal for %q, got %v", name, err)
+		}
 	}
 }

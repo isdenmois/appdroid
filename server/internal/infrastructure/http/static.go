@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/gin-gonic/gin"
+	"github.com/isdenmois/appdroid/server/internal/config"
 )
 
 //go:embed static
@@ -25,37 +25,37 @@ var staticType = map[string]string{
 // serveStatic is the catch-all handler serving the embedded admin frontend:
 // "/" resolves to index.html and any other path resolves to the embedded file
 // of the same name. Unknown paths are a plain 404.
-func serveStatic(c *gin.Context) {
+func serveStatic(w http.ResponseWriter, r *http.Request) {
 	// Only the document methods are served; anything else (POST, PUT, ...)
 	// that reaches the catch-all is a 404 just like before.
-	if c.Request.Method != http.MethodGet && c.Request.Method != http.MethodHead {
-		c.Status(http.StatusNotFound)
+	if r.Method != http.MethodGet && r.Method != http.MethodHead {
+		w.WriteHeader(http.StatusNotFound)
 		return
 	}
 
-	path := strings.TrimPrefix(c.Request.URL.Path, "/")
+	path := strings.TrimPrefix(r.URL.Path, "/")
 	if path == "" {
 		path = "index.html"
 	}
 
 	data, err := staticFS.ReadFile("static/" + path)
 	if err != nil {
-		c.Status(http.StatusNotFound) // missing file or a directory
+		w.WriteHeader(http.StatusNotFound) // missing file or a directory
 		return
 	}
 
 	// HTML entry documents always revalidate; JS/CSS subresources may be
-	// cached for a day in release mode. In dev mode (gin debug) nothing is
-	// cached, so a local rebuild is always picked up. No validators are
-	// emitted: embedded files all report the Unix epoch as their modification
-	// time, so Last-Modified/ETag would be wrong (content changes across
-	// rebuilds, the timestamp does not).
-	if gin.Mode() == gin.DebugMode {
-		c.Header("Cache-Control", "no-cache")
+	// cached for a day in release mode. In dev mode nothing is cached, so a
+	// local rebuild is always picked up. No validators are emitted: embedded
+	// files all report the Unix epoch as their modification time, so
+	// Last-Modified/ETag would be wrong (content changes across rebuilds, the
+	// timestamp does not).
+	if !config.IsReleaseMode() {
+		w.Header().Set("Cache-Control", "no-cache")
 	} else if filepath.Ext(path) == ".html" {
-		c.Header("Cache-Control", "no-cache")
+		w.Header().Set("Cache-Control", "no-cache")
 	} else {
-		c.Header("Cache-Control", "public, max-age=86400")
+		w.Header().Set("Cache-Control", "public, max-age=86400")
 	}
 
 	typ := staticType[filepath.Ext(path)]
@@ -65,5 +65,6 @@ func serveStatic(c *gin.Context) {
 			typ = "application/octet-stream"
 		}
 	}
-	c.Data(http.StatusOK, typ, data)
+	w.Header().Set("Content-Type", typ)
+	w.Write(data)
 }

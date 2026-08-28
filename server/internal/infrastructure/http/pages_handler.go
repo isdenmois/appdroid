@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/gin-gonic/gin"
+	"github.com/go-chi/chi/v5"
 
 	appsvc "github.com/isdenmois/appdroid/server/internal/application/app"
 	domainapp "github.com/isdenmois/appdroid/server/internal/domain/app"
@@ -23,38 +23,40 @@ func NewPagesHandler(svc *appsvc.Service, renderer *views.Renderer) *PagesHandle
 }
 
 // AppList renders the /apps page listing all apps as Obtainium links.
-func (h *PagesHandler) AppList(c *gin.Context) {
-	apps, err := h.svc.List(c.Request.Context())
+func (h *PagesHandler) AppList(w http.ResponseWriter, r *http.Request) {
+	apps, err := h.svc.List(r.Context())
 	if err != nil {
-		c.Status(http.StatusInternalServerError)
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
-	baseURL := baseURLFromHost(c.Request.Host)
+	baseURL := baseURLFromHost(r.Host)
 	body, err := h.renderer.AppList(baseURL, apps)
 	if err != nil {
-		c.Status(http.StatusInternalServerError)
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
-	c.Data(http.StatusOK, "text/html; charset=utf-8", body)
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	w.Write(body)
 }
 
 // AppPage renders the /app/:id page with a download link for the app.
-func (h *PagesHandler) AppPage(c *gin.Context) {
-	app, err := h.svc.Get(c.Request.Context(), c.Param("id"))
+func (h *PagesHandler) AppPage(w http.ResponseWriter, r *http.Request) {
+	app, err := h.svc.Get(r.Context(), chi.URLParam(r, "id"))
 	if err != nil {
-		c.Status(http.StatusNotFound)
+		w.WriteHeader(http.StatusNotFound)
 		return
 	}
 
 	body, err := h.renderer.AppPage([]domainapp.App{*app})
 	if err != nil {
-		c.Status(http.StatusInternalServerError)
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
-	c.Data(http.StatusOK, "text/html; charset=utf-8", body)
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	w.Write(body)
 }
 
 // baseURLFromHost derives the base URL the same way the previous

@@ -12,7 +12,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/gin-gonic/gin"
+	"github.com/go-chi/chi/v5"
 
 	appsvc "github.com/isdenmois/appdroid/server/internal/application/app"
 	"github.com/isdenmois/appdroid/server/internal/infrastructure/apkparser"
@@ -22,12 +22,10 @@ import (
 )
 
 // testApp returns the (handler bundle, data dir) used by the tests. It uses a
-// real SQLite database and file storage isolated in a temp dir, so the tests
+// real bbolt database and file storage isolated in a temp dir, so the tests
 // exercise the whole stack except the network layer.
 func testApp(t *testing.T) (*Handler, string) {
 	t.Helper()
-
-	gin.SetMode(gin.TestMode)
 
 	dataDir := t.TempDir()
 	db, err := repository.Open(dataDir)
@@ -51,16 +49,34 @@ func testApp(t *testing.T) (*Handler, string) {
 		Apps:  NewAppsHandler(svc, 256*1024*1024),
 		Files: NewFilesHandler(svc),
 		Pages: NewPagesHandler(svc, renderer),
+		// Any non-empty key enables auth in the tests; callers add the
+		// X-API-Key header to the requests they send.
+		APIKey: "test-api-key",
 	}, dataDir
 }
 
-func newRequest(t *testing.T, router *gin.Engine, method, path string, body io.Reader) *httptest.ResponseRecorder {
+func newRequest(t *testing.T, router *chi.Mux, method, path string, body io.Reader) *httptest.ResponseRecorder {
 	t.Helper()
 
 	req := httptest.NewRequest(method, path, body)
 	if body != nil {
 		req.Header.Set("Content-Type", "multipart/form-data")
 	}
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+	return w
+}
+
+// newAuthedRequest is like newRequest but carries a valid X-API-Key header, so
+// it can reach routes guarded by the auth middleware.
+func newAuthedRequest(t *testing.T, router *chi.Mux, method, path string, body io.Reader) *httptest.ResponseRecorder {
+	t.Helper()
+
+	req := httptest.NewRequest(method, path, body)
+	if body != nil {
+		req.Header.Set("Content-Type", "multipart/form-data")
+	}
+	req.Header.Set("X-API-Key", "test-api-key")
 	w := httptest.NewRecorder()
 	router.ServeHTTP(w, req)
 	return w
@@ -114,6 +130,7 @@ func TestUploadThenListThenDelete(t *testing.T) {
 	body, contentType := multipartBody(t, src)
 	req := httptest.NewRequest(http.MethodPost, "/api/upload", body)
 	req.Header.Set("Content-Type", contentType)
+	req.Header.Set("X-API-Key", "test-api-key")
 	w := httptest.NewRecorder()
 	router.ServeHTTP(w, req)
 
@@ -143,7 +160,7 @@ func TestUploadThenListThenDelete(t *testing.T) {
 	}
 
 	// act: delete
-	w = newRequest(t, router, http.MethodDelete, "/api/"+apps[0].ID, nil)
+	w = newAuthedRequest(t, router, http.MethodDelete, "/api/"+apps[0].ID, nil)
 
 	// assert: delete ok and row gone
 	if w.Code != http.StatusOK {
@@ -168,6 +185,7 @@ func TestUploadInvalidFile(t *testing.T) {
 	body, contentType := multipartBody(t, garbage)
 	req := httptest.NewRequest(http.MethodPost, "/api/upload", body)
 	req.Header.Set("Content-Type", contentType)
+	req.Header.Set("X-API-Key", "test-api-key")
 	w := httptest.NewRecorder()
 	router.ServeHTTP(w, req)
 
@@ -189,6 +207,7 @@ func TestGetAppPageAndFile(t *testing.T) {
 	body, contentType := multipartBody(t, src)
 	req := httptest.NewRequest(http.MethodPost, "/api/upload", body)
 	req.Header.Set("Content-Type", contentType)
+	req.Header.Set("X-API-Key", "test-api-key")
 	w := httptest.NewRecorder()
 	router.ServeHTTP(w, req)
 	if w.Code != http.StatusOK {
@@ -230,6 +249,7 @@ func TestAppsPageHasObtainiumLinks(t *testing.T) {
 	body, contentType := multipartBody(t, src)
 	req := httptest.NewRequest(http.MethodPost, "/api/upload", body)
 	req.Header.Set("Content-Type", contentType)
+	req.Header.Set("X-API-Key", "test-api-key")
 	w := httptest.NewRecorder()
 	router.ServeHTTP(w, req)
 	if w.Code != http.StatusOK {
@@ -289,6 +309,9 @@ func TestStaticIndexServed(t *testing.T) {
 func TestStaticAssetsCacheControl(t *testing.T) {
 	// arrange
 	h, _ := testApp(t)
+
+	// assets are only cached in release mode
+	t.Setenv("SERVER_MODE", "release")
 	router := New(h)
 
 	// act
@@ -340,6 +363,9 @@ func TestPagesCacheControl(t *testing.T) {
 func TestStaticJsModuleServed(t *testing.T) {
 	// arrange
 	h, _ := testApp(t)
+
+	// assets are only cached in release mode
+	t.Setenv("SERVER_MODE", "release")
 	router := New(h)
 
 	// act
@@ -358,12 +384,9 @@ func TestStaticJsModuleServed(t *testing.T) {
 }
 
 func TestStaticAssetsNoCacheInDevMode(t *testing.T) {
-	// arrange: gin mode is a package global, so save the current mode, then
-	// set debug mode after testApp (which pins TestMode).
-	prev := gin.Mode()
+	// arrange: with SERVER_MODE unset (the test default) the server runs in
+	// dev mode, so static assets must not be cached.
 	h, _ := testApp(t)
-	gin.SetMode(gin.DebugMode)
-	t.Cleanup(func() { gin.SetMode(prev) })
 
 	router := New(h)
 
@@ -411,6 +434,158 @@ func TestApiHasNoCacheControl(t *testing.T) {
 	}
 	if got := w.Header().Get("Cache-Control"); got != "" {
 		t.Errorf("expected no Cache-Control header, got %q", got)
+	}
+}
+
+// uploadAuthedRequest uploads the fixture at src with the given X-API-Key header
+// value (or empty to omit it) and returns the recorder.
+func uploadAuthedRequest(t *testing.T, router *chi.Mux, apiKey string, src string) *httptest.ResponseRecorder {
+	t.Helper()
+
+	body, contentType := multipartBody(t, src)
+	req := httptest.NewRequest(http.MethodPost, "/api/upload", body)
+	req.Header.Set("Content-Type", contentType)
+	if apiKey != "" {
+		req.Header.Set("X-API-Key", apiKey)
+	}
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+	return w
+}
+
+// multipartBytes builds a multipart request uploading the given bytes under
+// field/fileName and returns the body and its Content-Type.
+func multipartBytes(t *testing.T, field, fileName string, data []byte) (*bytes.Buffer, string) {
+	t.Helper()
+
+	var buf bytes.Buffer
+	w := multipart.NewWriter(&buf)
+	fw, err := w.CreateFormFile(field, fileName)
+	if err != nil {
+		t.Fatalf("create form file: %v", err)
+	}
+	if _, err := fw.Write(data); err != nil {
+		t.Fatalf("write data: %v", err)
+	}
+	if err := w.Close(); err != nil {
+		t.Fatalf("close multipart: %v", err)
+	}
+	return &buf, w.FormDataContentType()
+}
+
+func TestAuthUploadWithoutKeyReturns401(t *testing.T) {
+	// arrange
+	h, _ := testApp(t)
+	router := New(h)
+
+	// act: upload any bytes with no X-API-Key header at all
+	body, ct := multipartBytes(t, "file", "dummy.apk", []byte("not-an-apk"))
+	req := httptest.NewRequest(http.MethodPost, "/api/upload", body)
+	req.Header.Set("Content-Type", ct)
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	// assert
+	if w.Code != http.StatusUnauthorized {
+		t.Fatalf("expected 401, got %d (%s)", w.Code, w.Body.String())
+	}
+}
+
+func TestAuthUploadWithWrongKeyReturns401(t *testing.T) {
+	// arrange
+	h, _ := testApp(t)
+	router := New(h)
+
+	// act: upload any bytes with the wrong key
+	body, ct := multipartBytes(t, "file", "dummy.apk", []byte("not-an-apk"))
+	req := httptest.NewRequest(http.MethodPost, "/api/upload", body)
+	req.Header.Set("Content-Type", ct)
+	req.Header.Set("X-API-Key", "not-the-key")
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	// assert
+	if w.Code != http.StatusUnauthorized {
+		t.Fatalf("expected 401, got %d (%s)", w.Code, w.Body.String())
+	}
+}
+
+func TestAuthUploadWithKeySucceeds(t *testing.T) {
+	// arrange
+	h, _ := testApp(t)
+	router := New(h)
+
+	src := filepath.Join("..", "..", "..", "..", "data", "com.isdenmois.appdroid.apk")
+	if _, err := os.Stat(src); err != nil {
+		t.Skipf("no apk fixture: %v", err)
+	}
+
+	// act: upload with the correct key
+	w := uploadAuthedRequest(t, router, "test-api-key", src)
+
+	// assert: same as an unguarded upload
+	if w.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d (%s)", w.Code, w.Body.String())
+	}
+}
+
+func TestAuthDeleteWithoutKeyReturns401(t *testing.T) {
+	// arrange
+	h, _ := testApp(t)
+	router := New(h)
+
+	// act: delete with no X-API-Key header
+	w := newRequest(t, router, http.MethodDelete, "/api/does-not-matter", nil)
+
+	// assert
+	if w.Code != http.StatusUnauthorized {
+		t.Fatalf("expected 401, got %d (%s)", w.Code, w.Body.String())
+	}
+}
+
+func TestAuthFailsClosedWithoutConfiguredKey(t *testing.T) {
+	// arrange: a handler with no key configured at all.
+	h, _ := testApp(t)
+	h.APIKey = ""
+	router := New(h)
+
+	// act: an upload that would carry a valid key anyway.
+	body, ct := multipartBytes(t, "file", "dummy.apk", []byte("not-an-apk"))
+	req := httptest.NewRequest(http.MethodPost, "/api/upload", body)
+	req.Header.Set("Content-Type", ct)
+	req.Header.Set("X-API-Key", "test-api-key")
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	// assert: still rejected because no key is configured
+	if w.Code != http.StatusUnauthorized {
+		t.Fatalf("expected 401, got %d (%s)", w.Code, w.Body.String())
+	}
+}
+
+// TestMutationRoutesAreRateLimited verifies that mutating API routes are
+// rate-limited per client IP: once the configured limit is exceeded the
+// middleware returns 429, while requests below the limit proceed.
+func TestMutationRoutesAreRateLimited(t *testing.T) {
+	// arrange
+	h, _ := testApp(t)
+
+	// Inject a small throttle limit; New applies middleware.Throttle(2) to the
+	// mutating routes. All requests share one client IP so they share a bucket.
+	h.throttleLimit = 2
+	router := New(h)
+
+	// act + assert: the first two mutations pass the limiter, the third is
+	// rejected with 429 regardless of its authentication outcome.
+	for i := 1; i <= 3; i++ {
+		w := newAuthedRequest(t, router, "POST", "/api/upload", strings.NewReader(""))
+		if i < 3 {
+			if w.Code == http.StatusTooManyRequests {
+				t.Fatalf("request %d: limiter blocked before the limit was reached", i)
+			}
+		} else if w.Code != http.StatusTooManyRequests {
+			t.Fatalf("request 3: expected 429 after exceeding the limit, got %d", w.Code)
+		}
 	}
 }
 

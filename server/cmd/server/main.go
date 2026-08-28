@@ -11,11 +11,15 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/joho/godotenv"
+
 	"github.com/isdenmois/appdroid/server/internal/config"
 	"github.com/isdenmois/appdroid/server/internal/container"
 )
 
 func main() {
+	loadDevEnv()
+
 	cfg := config.Load()
 
 	ctn, err := container.New(cfg)
@@ -45,5 +49,20 @@ func main() {
 	defer cancel()
 	if err := srv.Shutdown(shutdownCtx); err != nil {
 		log.Printf("shutdown: %v", err)
+	}
+}
+
+// loadDevEnv loads ./server/.env to seed environment variables. It only runs
+// in dev mode (SERVER_MODE != "release") so production images never read a
+// .env file. godotenv never overrides variables already present in the
+// environment, so a real env var always wins. A missing file is expected on
+// machines that never created one and is silently ignored.
+func loadDevEnv() {
+	if config.IsReleaseMode() {
+		return
+	}
+
+	if err := godotenv.Load(".env"); err != nil && !errors.Is(err, os.ErrNotExist) {
+		log.Printf("load .env: %v", err)
 	}
 }

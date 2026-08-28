@@ -7,9 +7,10 @@ import (
 	"testing"
 
 	domainapp "github.com/isdenmois/appdroid/server/internal/domain/app"
+	bolt "go.etcd.io/bbolt"
 )
 
-// openTestDB opens an isolated SQLite database in a temp dir.
+// openTestDB opens an isolated bbolt database in a temp dir.
 func openTestDB(t *testing.T) *AppRepository {
 	t.Helper()
 
@@ -141,18 +142,32 @@ func TestOpenCreatesDatabaseAndMigrates(t *testing.T) {
 	}
 	defer db.Close()
 
+	// assert: the apps bucket exists and starts empty, and the database
+	// file was created at the expected path.
 	var count int
-	rowErr := db.QueryRow(`SELECT count(*) FROM apps`).Scan(&count)
-	_, statErr := os.Stat(filepath.Join(dir, "sqlite.db"))
+	var bucketExists bool
+	if err := db.View(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte(appsBucket))
+		if b == nil {
+			return nil
+		}
+		bucketExists = true
+		for k, v := b.Cursor().First(); k != nil; k, v = b.Cursor().Next() {
+			count++
+			_ = v
+		}
+		return nil
+	}); err != nil {
+		t.Fatalf("view apps bucket: %v", err)
+	}
+	if _, statErr := os.Stat(filepath.Join(dir, "appdroid.db")); statErr != nil {
+		t.Errorf("expected an appdroid.db file to be created: %v", statErr)
+	}
 
-	// assert
-	if rowErr != nil {
-		t.Fatalf("query apps table: %v", rowErr)
+	if !bucketExists {
+		t.Error("expected the apps bucket to exist")
 	}
 	if count != 0 {
-		t.Errorf("expected empty apps table, got %d", count)
-	}
-	if statErr != nil {
-		t.Errorf("expected a sqlite.db file to be created: %v", statErr)
+		t.Errorf("expected an empty apps bucket, got %d", count)
 	}
 }

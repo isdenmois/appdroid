@@ -5,16 +5,16 @@
 package container
 
 import (
-	"database/sql"
+	"go.etcd.io/bbolt"
+	"net/http"
 
-	"github.com/gin-gonic/gin"
 	"github.com/sarulabs/di/v2"
 
 	appsvc "github.com/isdenmois/appdroid/server/internal/application/app"
 	"github.com/isdenmois/appdroid/server/internal/config"
 	"github.com/isdenmois/appdroid/server/internal/infrastructure/apkparser"
 	"github.com/isdenmois/appdroid/server/internal/infrastructure/apkstorage"
-	"github.com/isdenmois/appdroid/server/internal/infrastructure/http"
+	infrahttp "github.com/isdenmois/appdroid/server/internal/infrastructure/http"
 	"github.com/isdenmois/appdroid/server/internal/infrastructure/http/views"
 	"github.com/isdenmois/appdroid/server/internal/infrastructure/repository"
 )
@@ -22,7 +22,7 @@ import (
 const (
 	// ConfigName is the container name of the runtime config.
 	ConfigName = "config"
-	// DBName is the container name of the SQLite database handle.
+	// DBName is the container name of the bbolt database handle.
 	DBName = "db"
 	// AppServiceName is the container name of the application service.
 	AppServiceName = "app-service"
@@ -51,7 +51,7 @@ func New(cfg config.Config) (di.Container, error) {
 		Name:  DBName,
 		Build: func(di.Container) (interface{}, error) { return repository.Open(cfg.DataDir) },
 		Close: func(obj interface{}) error {
-			if db, ok := obj.(*sql.DB); ok {
+			if db, ok := obj.(*bbolt.DB); ok {
 				return db.Close()
 			}
 			return nil
@@ -61,7 +61,7 @@ func New(cfg config.Config) (di.Container, error) {
 	repoDef := di.Def{
 		Name: repoName,
 		Build: func(ctn di.Container) (interface{}, error) {
-			return repository.NewAppRepository(ctn.Get(DBName).(*sql.DB)), nil
+			return repository.NewAppRepository(ctn.Get(DBName).(*bbolt.DB)), nil
 		},
 	}
 
@@ -100,11 +100,11 @@ func New(cfg config.Config) (di.Container, error) {
 			cfg := ctn.Get(ConfigName).(config.Config)
 			svc := ctn.Get(AppServiceName).(*appsvc.Service)
 
-			apps := http.NewAppsHandler(svc, cfg.MaxUploadBytes)
-			files := http.NewFilesHandler(svc)
-			pages := http.NewPagesHandler(svc, ctn.Get(viewsName).(*views.Renderer))
+			apps := infrahttp.NewAppsHandler(svc, cfg.MaxUploadBytes)
+			files := infrahttp.NewFilesHandler(svc)
+			pages := infrahttp.NewPagesHandler(svc, ctn.Get(viewsName).(*views.Renderer))
 
-			return &http.Handler{Apps: apps, Files: files, Pages: pages}, nil
+			return &infrahttp.Handler{Apps: apps, Files: files, Pages: pages, APIKey: cfg.APIKey}, nil
 		},
 	}
 
@@ -115,7 +115,7 @@ func New(cfg config.Config) (di.Container, error) {
 	return builder.Build(), nil
 }
 
-// Router returns the configured Gin engine from the container.
-func Router(ctn di.Container) *gin.Engine {
-	return http.New(ctn.Get(HandlerName).(*http.Handler))
+// Router returns the configured chi router from the container.
+func Router(ctn di.Container) http.Handler {
+	return infrahttp.New(ctn.Get(HandlerName).(*infrahttp.Handler))
 }

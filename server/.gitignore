@@ -1,4 +1,4 @@
-# Runtime data: SQLite database and uploaded APKs
+# Runtime data: bbolt database and uploaded APKs
 /data
 
 # Node (leftovers from the previous Bun implementation)

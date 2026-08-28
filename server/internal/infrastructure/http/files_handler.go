@@ -1,9 +1,10 @@
 package http
 
 import (
+	"io"
 	"net/http"
 
-	"github.com/gin-gonic/gin"
+	"github.com/go-chi/chi/v5"
 
 	appsvc "github.com/isdenmois/appdroid/server/internal/application/app"
 )
@@ -19,14 +20,17 @@ func NewFilesHandler(svc *appsvc.Service) *FilesHandler {
 }
 
 // Get serves the file named by the :file path param from the data directory.
-func (h *FilesHandler) Get(c *gin.Context) {
-	name := c.Param("file")
-	f, err := h.svc.OpenFile(c.Request.Context(), name)
+func (h *FilesHandler) Get(w http.ResponseWriter, r *http.Request) {
+	name := chi.URLParam(r, "file")
+	f, err := h.svc.OpenFile(r.Context(), name)
 	if err != nil {
-		c.Status(http.StatusNotFound)
+		w.WriteHeader(http.StatusNotFound)
 		return
 	}
 	defer f.Close()
 
-	c.DataFromReader(http.StatusOK, -1, "application/vnd.android.package-archive", f, nil)
+	// No Content-Length / no range handling: matches the old
+	// DataFromReader(...,-1,...) chunked behavior.
+	w.Header().Set("Content-Type", "application/vnd.android.package-archive")
+	io.Copy(w, f)
 }

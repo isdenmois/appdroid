@@ -30,7 +30,7 @@ tidy:
 
 # Run the server locally (env overrides apply: PORT, DATA_DIR)
 run:
-    go run ./cmd/server
+    gow run ./cmd/server
 
 # Build a static binary (no CGO) into ./bin/appdroid-static
 build-static:

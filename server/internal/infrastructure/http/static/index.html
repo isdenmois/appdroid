@@ -35,6 +35,22 @@
       </div>
     </div>
 
+    <button id="settings-toggle" class="settings-toggle" title="API key">⚙</button>
+    <div id="auth-panel" class="auth-panel hidden">
+      <div class="auth-panel-title">API key</div>
+      <input
+        id="api-key-input"
+        type="password"
+        placeholder="X-API-Key"
+        autocomplete="off"
+      />
+      <div class="auth-panel-actions">
+        <button id="api-key-save" class="auth-save">Save</button>
+        <button id="api-key-clear" class="auth-clear">Clear</button>
+      </div>
+      <div id="auth-indicator" class="auth-indicator"></div>
+    </div>
+
     <script type="module" src="main.js"></script>
   </body>
 </html>

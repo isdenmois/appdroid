@@ -3,7 +3,7 @@ package http
 import (
 	"net/http"
 
-	"github.com/gin-gonic/gin"
+	"github.com/go-chi/chi/v5"
 
 	appsvc "github.com/isdenmois/appdroid/server/internal/application/app"
 	domainapp "github.com/isdenmois/appdroid/server/internal/domain/app"
@@ -45,10 +45,10 @@ func NewAppsHandler(svc *appsvc.Service, maxUpload int64) *AppsHandler {
 }
 
 // List returns all apps as JSON.
-func (h *AppsHandler) List(c *gin.Context) {
-	apps, err := h.svc.List(c.Request.Context())
+func (h *AppsHandler) List(w http.ResponseWriter, r *http.Request) {
+	apps, err := h.svc.List(r.Context())
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		writeJSON(w, http.StatusInternalServerError, map[string]any{"error": err.Error()})
 		return
 	}
 
@@ -57,40 +57,40 @@ func (h *AppsHandler) List(c *gin.Context) {
 		out = append(out, toDTO(a))
 	}
 
-	c.JSON(http.StatusOK, out)
+	writeJSON(w, http.StatusOK, out)
 }
 
 // Upload accepts a multipart file, parses it and stores the app.
-func (h *AppsHandler) Upload(c *gin.Context) {
-	c.Request.Body = http.MaxBytesReader(c.Writer, c.Request.Body, h.maxUpload)
+func (h *AppsHandler) Upload(w http.ResponseWriter, r *http.Request) {
+	// net/http requires an explicit multipart parse before FormFile (gin did
+	// it implicitly). MaxBytesReader caps the body at the configured limit.
+	r.Body = http.MaxBytesReader(w, r.Body, h.maxUpload)
+	if err := r.ParseMultipartForm(h.maxUpload); err != nil {
+		writeJSON(w, http.StatusBadRequest, map[string]any{"error": "missing file"})
+		return
+	}
 
-	file, err := c.FormFile("file")
+	file, header, err := r.FormFile("file")
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "missing file"})
+		writeJSON(w, http.StatusBadRequest, map[string]any{"error": "missing file"})
+		return
+	}
+	defer file.Close()
+
+	if err := h.svc.UploadApk(r.Context(), file, header.Filename); err != nil {
+		writeJSON(w, http.StatusBadRequest, map[string]any{"error": err.Error()})
 		return
 	}
 
-	f, err := file.Open()
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "cannot open file"})
-		return
-	}
-	defer f.Close()
-
-	if err := h.svc.UploadApk(c.Request.Context(), f, file.Filename); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	c.Status(http.StatusOK)
+	w.WriteHeader(http.StatusOK)
 }
 
 // Delete removes the app identified by the :id path param.
-func (h *AppsHandler) Delete(c *gin.Context) {
-	if err := h.svc.Delete(c.Request.Context(), c.Param("id")); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+func (h *AppsHandler) Delete(w http.ResponseWriter, r *http.Request) {
+	if err := h.svc.Delete(r.Context(), chi.URLParam(r, "id")); err != nil {
+		writeJSON(w, http.StatusInternalServerError, map[string]any{"error": err.Error()})
 		return
 	}
 
-	c.Status(http.StatusOK)
+	w.WriteHeader(http.StatusOK)
 }

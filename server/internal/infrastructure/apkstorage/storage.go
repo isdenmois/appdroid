@@ -5,11 +5,33 @@ package apkstorage
 import (
 	"crypto/rand"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"io"
 	"os"
 	"path/filepath"
+	"strings"
 )
+
+// errTraversal is returned when a requested name would resolve outside the
+// data or temporary directory. It guards the file-serving entry points
+var errTraversal = errors.New("apkstorage: path traversal outside data directory")
+
+// resolve cleans name against base and guarantees the result stays inside
+// base. filepath.Join alone does not prevent a name like ".." from escaping
+// base, so the cleaned absolute path is checked against base's own cleaned
+// form before it is used.
+func resolve(base, name string) (string, error) {
+	if name == "" {
+		return "", errTraversal
+	}
+	full := filepath.Clean(filepath.Join(base, name))
+	baseDir := filepath.Clean(base)
+	if full != baseDir && !strings.HasPrefix(full, baseDir+string(os.PathSeparator)) {
+		return "", errTraversal
+	}
+	return full, nil
+}
 
 // Storage persists APK files. It implements application.ApkStorage.
 type Storage struct {
@@ -101,15 +123,22 @@ func (s *Storage) Path(name string) string {
 
 // Remove deletes the stored apk name from the data directory.
 func (s *Storage) Remove(name string) error {
-	if err := os.Remove(filepath.Join(s.dataDir, name)); err != nil && !os.IsNotExist(err) {
+	path, err := resolve(s.dataDir, name)
+	if err != nil {
+		return err
+	}
+	if err := os.Remove(path); err != nil && !os.IsNotExist(err) {
 		return fmt.Errorf("remove apk: %w", err)
 	}
 	return nil
 }
 
-// Open returns a read stream for the stored apk name.
 func (s *Storage) Open(name string) (io.ReadCloser, error) {
-	return os.Open(filepath.Join(s.dataDir, name))
+	path, err := resolve(s.dataDir, name)
+	if err != nil {
+		return nil, err
+	}
+	return os.Open(path)
 }
 
 // newID returns a random hex string used as the temporary file name
